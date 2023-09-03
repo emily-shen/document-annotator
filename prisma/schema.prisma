@@ -1,0 +1,56 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["filteredRelationCount"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Annotator {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  current     Document? @relation(fields:[currentDoc], references:[studyId])
+  currentDoc  String?   @unique
+  documents   DocumentAnnotators[]
+  annotations AnnotatorAnnotations[]
+}
+
+model Document {
+  studyId     String   @unique
+  contents    String
+  annotations Annotation[]
+  annotators  DocumentAnnotators[]
+  currentA    Annotator?
+}
+
+model Annotation {
+  id         String        @id @default(uuid())
+  anat       String 
+  attr       String 
+  comp       String      
+  annotators AnnotatorAnnotations[]
+  document   Document      @relation(fields:[studyId], references:[studyId])
+  studyId    String
+}
+
+
+model AnnotatorAnnotations {
+  annotation    Annotation    @relation(fields:[annotationId], references:[id])
+  annotationId  String
+  annotator     Annotator      @relation(fields:[annotatorId], references:[id])
+  annotatorId   String
+  @@id([annotationId, annotatorId])
+}
+
+model DocumentAnnotators {
+  document      Document    @relation(fields:[studyId], references:[studyId])
+  studyId       String
+  annotator     Annotator   @relation(fields:[annoId], references:[id])
+  annoId        String
+  @@id([studyId, annoId])
+}
